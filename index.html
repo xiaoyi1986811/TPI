@@ -28811,6 +28811,9 @@ try{
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // ✅ 让其他模块/按钮（如云端下载按钮的 onclick）可调用
+  try{ window.getSelectedDate = getSelectedDate; }catch(_e){}
+
   function keyForDate(dateStr){ return LS_PREFIX + dateStr; }
 
   function safeParseJson(s, fallback){

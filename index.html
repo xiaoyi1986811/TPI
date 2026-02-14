@@ -4056,86 +4056,6 @@ window.__tpi_legacy_exportDataComplete_3 = function(format) {
             TPI全维效能管理系统 | 数据日期: ${dateStr} | 导出时间: ${htmlExportTimeStr}
         </div>
     </div>
-
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
 </body>
 </html>`;
                 fileName += '.html';
@@ -22913,87 +22833,7 @@ window.addEventListener('resize', function() {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;">
                             <h3 style="margin:0;font-size:18px;color:#1e293b;">👁️ 报告预览</h3>
                             <div style="display:flex;gap:10px;">
-                                <button onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>TPI报告预览</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#2563eb;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #e5e7eb;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border:1px solid #ccc;border-radius:6px;background:#fff;}</style></head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button class=btn onclick=window.print()>🖨️ 打印</button><button class=btn onclick=window.close()>关闭</button></div>
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
-</body></html>');w.document.close();}}})()" style="padding:6px 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
+                                <button onclick="(function(){var p=document.getElementById('tpi-preview-body');if(p){var w=window.open('','_blank');if(w){w.document.write('<html><head><meta charset=UTF-8><title>TPI报告预览</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:20px;}h2{color:#2563eb;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{padding:10px;border:1px solid #e5e7eb;}th{background:#f3f4f6;}.btn{padding:10px 20px;margin:10px 5px;cursor:pointer;border:1px solid #ccc;border-radius:6px;background:#fff;}</style></head><body>'+p.innerHTML+'<div style=text-align:center;margin-top:30px><button class=btn onclick=window.print()>🖨️ 打印</button><button class=btn onclick=window.close()>关闭</button></div></body></html>');w.document.close();}}})()" style="padding:6px 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:#334155;transition:all 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">🌐 新窗口打开</button>
                                 <button onclick="document.getElementById('tpi-preview-modal').remove()" style="padding:6px 14px;border:none;border-radius:6px;background:#ef4444;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:background 0.15s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">✕ 关闭</button>
                             </div>
                         </div>
@@ -23751,87 +23591,7 @@ window.addEventListener('resize', function() {
             </div>
 
                         ${reportContent.innerHTML}
-                    
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
-</body>
+                    </body>
                     </html>
                 `);
                 printWindow.document.close();
@@ -24177,87 +23937,7 @@ window.addEventListener('resize', function() {
                 for (let key in allData) {
                     html += '<tr><td>' + key + '</td><td><pre>' + allData[key] + '</pre></td></tr>';
                 }
-                html += '</table>
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
-</body></html>';
+                html += '</table></body></html>';
                 dataStr = html;
                 filename = 'TPI_数据导出_' + new Date().toISOString().split('T')[0] + '.html';
                 mimeType = 'text/html';
@@ -25502,87 +25182,7 @@ html += `</head><body>
                             const date = key.replace('tpi_data_', '');
                             html += `<tr><td>${date}</td><td><pre>${allData[key]}</pre></td></tr>`;
                         }
-                        html += '</table>
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
-</body></html>';
+                        html += '</table></body></html>';
                         const blob = new Blob([html], { type: 'text/html' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -29945,86 +29545,6 @@ try{
 <!-- ========== 未来事件雷达渲染修复补丁 v1.0 ========== -->
 <!-- 解决：下载后计数正常但列表空白，增强渲染稳定性 -->
 
-
-<script>
-(function(){
-
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
-        try{
-            const score = window.calculateScore();
-            if(!score) return;
-
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
-
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
-        }
-    }
-
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
-
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
-
-})();
-</script>
-
 </body>
 </html>
 
@@ -31196,80 +30716,196 @@ console.log('✅ [TPI优化] 函数增强包装器已加载');
 
 
 <script>
+/* =========================================================
+   ✅ Pill-Only 终极封锁补丁 (2026-02-15)
+   目的：
+   - 下载成功后 restoreUIFromData() 可能重建旧看板 DOM
+   - 必须在 restore 之后立刻：清场旧 DOM + 仅刷新 pill 看板 + 绝对拦截后续旧插入
+   约束：
+   - 不改实时计分逻辑
+   - 不改同步上传/下载逻辑
+========================================================= */
 (function(){
+  'use strict';
 
-    console.log("[PILL-ONLY] Hard lock activated");
-
-    /* 1️⃣ 强制封锁 restoreUIFromData 里的旧看板 */
-    if(typeof window.restoreUIFromData === 'function'){
-        const __origRestore = window.restoreUIFromData;
-        window.restoreUIFromData = function(data){
-            const result = __origRestore.call(this, data);
-
-            __removeLegacyBoards();
-            __updatePillOnly();
-
-            return result;
-        };
-    }
-
-    /* 2️⃣ 强制删除所有旧看板 DOM */
-    function __removeLegacyBoards(){
-        document.querySelectorAll(
-            '#scoreBoard, #legacyScoreBoard, .score-dashboard, .legacy-board, .old-score-card'
-        ).forEach(el => {
-            el.remove();
-        });
-    }
-
-    /* 3️⃣ 只允许 pill 更新 */
-    function __updatePillOnly(){
-        if(!window.calculateScore) return;
-
+  // ---- 0) 统一清理函数：更强的旧看板删除（不影响 pill 看板） ----
+  function __tpi_killLegacyScoreboards_STRICT(){
+    try{
+      // 明确的旧节点选择器
+      const selectors = [
+        '#scoreBoard',             // 用户提到的旧 id
+        '#score-dashboard',        // 旧看板常见 id
+        '.score-dashboard',        // 旧看板 class
+        '.legacy-board',           // 旧看板 class
+        '[id^="dashboard-"]',      // 一些旧版本前缀
+        '[data-legacy-board="1"]'  // 兜底标记
+      ];
+      selectors.forEach(sel=>{
         try{
-            const score = window.calculateScore();
-            if(!score) return;
+          document.querySelectorAll(sel).forEach(el=>{ try{ el.remove(); }catch(e){} });
+        }catch(e){}
+      });
 
-            if(document.getElementById('ts-total'))
-                document.getElementById('ts-total').textContent = score.total ?? 0;
+      // 文本结构兜底：包含“总分 + 评级”的非 pill 区域节点
+      // 注意：只删 fixed/sticky 或者明显像看板的大块节点，避免误删正文
+      try{
+        const all = document.querySelectorAll('body *');
+        for (const el of all){
+          if (!el || el.nodeType !== 1) continue;
+          if (el.id === 'scoreDashboardPill' || el.closest && el.closest('#scoreDashboardPill')) continue; // pill 白名单
+          const style = (el instanceof HTMLElement) ? getComputedStyle(el) : null;
+          const pos = style ? style.position : '';
+          const looksTop = (pos === 'fixed' || pos === 'sticky');
+          if (!looksTop) continue;
 
-            if(document.getElementById('ts-rating'))
-                document.getElementById('ts-rating').textContent = score.rating ?? '--';
-
-        }catch(e){
-            console.warn("[PILL-ONLY] update error:", e);
+          const txt = (el.innerText || '').replace(/\s+/g,' ').trim();
+          if (!txt) continue;
+          if (txt.includes('总分') && txt.includes('评级')) {
+            try{ el.remove(); }catch(e){}
+          }
         }
+      }catch(e){}
+    }catch(e){}
+  }
+
+  // 兼容：如果已有弱版函数，保留并叠加增强
+  const __oldKiller = window.__tpi_killLegacyScoreboards;
+  window.__tpi_killLegacyScoreboards = function(){
+    try{ if (typeof __oldKiller === 'function') __oldKiller(); }catch(e){}
+    __tpi_killLegacyScoreboards_STRICT();
+  };
+
+  // ---- 1) 封锁 restoreUIFromData：restore 后立刻清场 + 刷新 pill ----
+  (function(){
+    if (typeof window.restoreUIFromData !== 'function') return;
+    if (window.__tpi_restore_pill_only_patched) return;
+    window.__tpi_restore_pill_only_patched = true;
+
+    const originalRestore = window.restoreUIFromData;
+
+    window.restoreUIFromData = function(data){
+      const result = originalRestore.call(this, data);
+
+      // ① restore 完成后立即清场（同步）
+      try{ window.__tpi_killLegacyScoreboards(); }catch(e){}
+
+      // ② 仅刷新 pill：尽量不传参，让其走既有内部计算（最稳）
+      try{
+        if (window.ScoreDashboard && typeof window.ScoreDashboard.update === 'function') {
+          // 若已有 calculateScore 且返回对象/数值，则尝试传入；失败则无参 update
+          let score = null;
+          try{
+            if (typeof window.calculateScore === 'function') score = window.calculateScore();
+          }catch(e){}
+          try{
+            if (score != null) window.ScoreDashboard.update(score);
+            else window.ScoreDashboard.update();
+          }catch(e2){
+            try{ window.ScoreDashboard.update(); }catch(e3){}
+          }
+        }
+      }catch(e){}
+
+      // ③ 异步兜底：有些旧逻辑会在 restore 后 setTimeout/微任务里再插一次
+      try{
+        setTimeout(()=>{
+          try{ window.__tpi_killLegacyScoreboards(); }catch(e){}
+          try{
+            if (window.ScoreDashboard && typeof window.ScoreDashboard.update === 'function') window.ScoreDashboard.update();
+          }catch(e){}
+        }, 0);
+      }catch(e){}
+
+      return result;
+    };
+  })();
+
+  // ---- 2) MutationObserver：绝对封锁（含文本结构匹配） ----
+  (function(){
+    if (window.__tpi_legacy_board_observer_installed) return;
+    window.__tpi_legacy_board_observer_installed = true;
+
+    const isPill = (node)=> {
+      try{
+        if (!node || node.nodeType !== 1) return false;
+        if (node.id === 'scoreDashboardPill') return true;
+        if (node.closest && node.closest('#scoreDashboardPill')) return true;
+      }catch(e){}
+      return false;
+    };
+
+    const shouldKill = (node)=>{
+      try{
+        if (!node || node.nodeType !== 1) return false;
+        if (isPill(node)) return false;
+
+        // 选择器命中
+        if (node.id === 'scoreBoard') return true;
+        if (node.id === 'score-dashboard') return true;
+        if (node.classList && (node.classList.contains('score-dashboard') || node.classList.contains('legacy-board'))) return true;
+        if (node.getAttribute && node.getAttribute('data-legacy-board') === '1') return true;
+        if (node.id && node.id.startsWith('dashboard-')) return true;
+
+        // 文本结构命中（更激进，但只针对 fixed/sticky 节点）
+        const style = (node instanceof HTMLElement) ? getComputedStyle(node) : null;
+        const pos = style ? style.position : '';
+        if (pos !== 'fixed' && pos !== 'sticky') return false;
+
+        const txt = (node.innerText || '').replace(/\s+/g,' ').trim();
+        if (!txt) return false;
+        return (txt.includes('总分') && txt.includes('评级'));
+      }catch(e){}
+      return false;
+    };
+
+    const obs = new MutationObserver((mutations)=>{
+      for (const m of mutations){
+        if (!m.addedNodes) continue;
+        for (const node of m.addedNodes){
+          if (!node || node.nodeType !== 1) continue;
+
+          // 先杀节点本身
+          if (shouldKill(node)) { try{ node.remove(); }catch(e){} continue; }
+
+          // 再扫其子树（避免一次插入大容器把旧看板包进去）
+          try{
+            const cand = node.querySelectorAll ? node.querySelectorAll('#scoreBoard, #score-dashboard, .score-dashboard, .legacy-board, [id^="dashboard-"], [data-legacy-board="1"]') : [];
+            cand.forEach(el=>{
+              if (!isPill(el)) { try{ el.remove(); }catch(e){} }
+            });
+          }catch(e){}
+        }
+      }
+    });
+
+    try{
+      obs.observe(document.body, { childList:true, subtree:true });
+    }catch(e){
+      // body 还没就绪：DOMReady 再挂
+      document.addEventListener('DOMContentLoaded', ()=>{
+        try{ obs.observe(document.body, { childList:true, subtree:true }); }catch(_){}
+      }, {once:true});
     }
+  })();
 
-    /* 4️⃣ MutationObserver：刚插入就删 */
-    const __legacyBlocker = new MutationObserver((mutations)=>{
-        for(const m of mutations){
-            for(const node of m.addedNodes){
-                if(node.nodeType !== 1) continue;
+  // ---- 3) 彻底禁用旧更新路径（如果存在） ----
+  (function(){
+    try{
+      if (window.ScoreDashboard && typeof window.ScoreDashboard === 'object') {
+        if (typeof window.ScoreDashboard.renderLegacy === 'function') window.ScoreDashboard.renderLegacy = function(){};
+        if (typeof window.ScoreDashboard.renderFull === 'function') window.ScoreDashboard.renderFull = function(){};
+      }
+    }catch(e){}
+  })();
 
-                if(
-                    node.id === 'scoreBoard' ||
-                    node.id === 'legacyScoreBoard' ||
-                    node.classList?.contains('score-dashboard') ||
-                    node.classList?.contains('legacy-board') ||
-                    (node.innerText?.includes('总分') && node.innerText?.includes('评级'))
-                ){
-                    node.remove();
-                }
-            }
-        }
-    });
-
-    __legacyBlocker.observe(document.body, {
-        childList:true,
-        subtree:true
-    });
-
-    /* 5️⃣ 页面加载后清场一次 */
-    window.addEventListener('load', ()=>{
-        __removeLegacyBoards();
-        __updatePillOnly();
-    });
+  // ---- 4) 启动时也清一次（防止首屏残留） ----
+  try{
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', ()=>{ try{ window.__tpi_killLegacyScoreboards(); }catch(e){} }, {once:true});
+    } else {
+      window.__tpi_killLegacyScoreboards();
+    }
+  }catch(e){}
 
 })();
 </script>

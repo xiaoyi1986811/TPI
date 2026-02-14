@@ -29265,6 +29265,171 @@ try{
 <!-- ========== 未来事件雷达渲染修复补丁 v1.0 ========== -->
 <!-- 解决：下载后计数正常但列表空白，增强渲染稳定性 -->
 
+<!-- ========== 分数看板样式保护补丁 ========== -->
+<!-- 确保tpi-top-scoreboard的CSS样式始终有效，防止云端下载后样式丢失 -->
+<script>
+(function(){
+  'use strict';
+  
+  // 保存原始样式内容
+  const ORIGINAL_SCOREBOARD_STYLE = `
+/* ===== 顶部置顶分数看板（紧凑版：不遮盖导航栏） ===== */
+:root{
+  /* 顶部分数看板高度（由 JS 动态测量）；用于把 quick-nav 下移，兜底 40px */
+  --tpi-top-scoreboard-height: 34px;
+}
+
+#tpi-top-scoreboard-spacer{height: var(--tpi-top-scoreboard-height, 34px);}
+#tpi-top-scoreboard{
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0; right: 0;
+  width: 100%;
+  z-index: 10000;
+  background: linear-gradient(135deg,#e0e7ff 0%,#ddd6fe 100%);
+  padding: 2px 4px;
+  border-bottom: 1px solid rgba(15,23,42,.08);
+}
+#tpi-top-scoreboard .inner{
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#tpi-top-scoreboard .inner::-webkit-scrollbar{ display:none; }
+
+#tpi-top-scoreboard .divider{
+  width: 1px;
+  height: 24px;
+  background: rgba(15,23,42,.10);
+  border-radius: 1px;
+  margin: 0 2px;
+}
+#tpi-top-scoreboard .pill.rating{
+  padding: 4px 10px;
+  font-weight: 800;
+  background: rgba(255,255,255,.65);
+}
+#tpi-top-scoreboard .pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.70);
+  border: 1px solid rgba(15,23,42,.08);
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  color: #0f172a;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+#tpi-top-scoreboard .pill .label{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: .92;
+}
+#tpi-top-scoreboard .pill .value{
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  min-width: 40px;
+  text-align: right;
+}
+#tpi-top-scoreboard .pill.total{
+  background: rgba(37,99,235,.10);
+  border-color: rgba(37,99,235,.22);
+}
+#tpi-top-scoreboard .pill.total .value{
+  min-width: 50px;
+}
+@media (max-width: 720px){
+  #tpi-top-scoreboard{ padding:2px 4px; }
+  #tpi-top-scoreboard .pill{ padding:4px 8px; border-radius:12px; }
+  #tpi-top-scoreboard .pill .label{ font-size:11px; }
+  #tpi-top-scoreboard .pill .value{ font-size:14px; min-width:38px; }
+  #tpi-top-scoreboard .pill.total .value{ min-width:46px; }
+}`;
+
+  function ensureScoreboardStyle(){
+    try{
+      let styleEl = document.getElementById('tpi-top-scoreboard-style');
+      
+      // 如果style标签不存在或内容为空，重新创建
+      if(!styleEl || !styleEl.textContent || styleEl.textContent.trim() === ''){
+        console.log('[样式保护] 检测到分数看板样式丢失，正在恢复...');
+        
+        // 删除旧的（如果存在）
+        if(styleEl) styleEl.remove();
+        
+        // 创建新的
+        styleEl = document.createElement('style');
+        styleEl.id = 'tpi-top-scoreboard-style';
+        styleEl.textContent = ORIGINAL_SCOREBOARD_STYLE;
+        
+        // 插入到head中
+        const head = document.head || document.getElementsByTagName('head')[0];
+        if(head){
+          head.appendChild(styleEl);
+          console.log('[样式保护] 分数看板样式已恢复');
+        }
+      }
+    }catch(e){
+      console.warn('[样式保护] 样式检查失败:', e);
+    }
+  }
+  
+  // 页面加载后立即检查一次
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ensureScoreboardStyle);
+  }else{
+    ensureScoreboardStyle();
+  }
+  
+  // 定期检查（每2秒）
+  setInterval(ensureScoreboardStyle, 2000);
+  
+  // 监听DOM变化，当head被修改时立即检查
+  try{
+    const observer = new MutationObserver(function(mutations){
+      let needsCheck = false;
+      mutations.forEach(function(mutation){
+        // 如果有节点被移除，检查是否包含样式
+        mutation.removedNodes.forEach(function(node){
+          if(node.nodeType === 1 && node.id === 'tpi-top-scoreboard-style'){
+            needsCheck = true;
+          }
+        });
+      });
+      if(needsCheck){
+        setTimeout(ensureScoreboardStyle, 50);
+      }
+    });
+    
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if(head){
+      observer.observe(head, {
+        childList: true
+      });
+    }
+  }catch(e){
+    console.warn('[样式保护] MutationObserver设置失败:', e);
+  }
+  
+  // 暴露给全局，方便调试或手动恢复
+  window.__ensureScoreboardStyle = ensureScoreboardStyle;
+})();
+</script>
+
 <!-- ========== 分数看板清理补丁 ========== -->
 <!-- 自动删除任何动态创建的score-dashboard元素，确保只显示tpi-top-scoreboard -->
 <script>

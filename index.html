@@ -23551,46 +23551,23 @@ window.addEventListener('resize', function() {
                     </head>
                     <body>
 
-        <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
-                <!-- 五个部分分数 -->
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📝 AMI</span>
-                    <span id="dashboard-ami" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">⚡ BCM</span>
-                    <span id="dashboard-bcm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📦 LOG</span>
-                    <span id="dashboard-logistics" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">💪 HSM</span>
-                    <span id="dashboard-hsm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">🎁 BONUS</span>
-                    <span id="dashboard-bonus" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- TPI总分 -->
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(255,255,255,0.15); border-radius: 5px;">
-                    <span class="tpi-inline-06">TPI 总分</span>
-                    <span id="dashboard-total" style="font-size: 20px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- 评级 -->
-                <div id="dashboard-rating" style="font-size: 10px; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 12px; font-weight: 600; white-space: nowrap;">待评级</div>
-
+        <div style="padding:8px 14px; margin:0 0 10px 0; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:12px; color:#64748b;">分项</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">MA7: <span id="ts-export-ma7">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">AMI: <span id="ts-export-ami">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">FLI: <span id="ts-export-fli">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">SYS: <span id="ts-export-sys">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">BONUS: <span id="ts-export-bonus">0.0</span></span>
             </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:12px; color:#64748b;">总分</span>
+              <span style="font-size:16px; font-weight:700; color:#0f172a;" id="ts-export-total">0.0</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#dbeafe; color:#1e40af; font-weight:700;" id="ts-export-rating">待评级</span>
+            </div>
+        </div>
 
-                        ${reportContent.innerHTML}
+${reportContent.innerHTML}
                     </body>
                     </html>
                 `);
@@ -23890,50 +23867,23 @@ window.addEventListener('resize', function() {
             } else if (format === 'html') {
                 let html = `<html><head><meta charset="UTF-8"><title>TPI数据导出</title></head><body>
 
-        <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
-                <!-- 五个部分分数 -->
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📝 AMI</span>
-                    <span id="dashboard-ami" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">⚡ BCM</span>
-                    <span id="dashboard-bcm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📦 LOG</span>
-                    <span id="dashboard-logistics" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">💪 HSM</span>
-                    <span id="dashboard-hsm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">🎁 BONUS</span>
-                    <span id="dashboard-bonus" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- TPI总分 -->
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(255,255,255,0.15); border-radius: 5px;">
-                    <span class="tpi-inline-06">TPI 总分</span>
-                    <span id="dashboard-total" style="font-size: 20px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- 评级 -->
-                <div id="dashboard-rating" style="font-size: 10px; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 12px; font-weight: 600; white-space: nowrap;">待评级</div>
-
+        <div style="padding:8px 14px; margin:0 0 10px 0; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:12px; color:#64748b;">分项</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">MA7: <span id="ts-export-ma7">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">AMI: <span id="ts-export-ami">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">FLI: <span id="ts-export-fli">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">SYS: <span id="ts-export-sys">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">BONUS: <span id="ts-export-bonus">0.0</span></span>
             </div>
-';
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:12px; color:#64748b;">总分</span>
+              <span style="font-size:16px; font-weight:700; color:#0f172a;" id="ts-export-total">0.0</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#dbeafe; color:#1e40af; font-weight:700;" id="ts-export-rating">待评级</span>
+            </div>
+        </div>
 
-                `;
-
-                html += '<h1>TPI数据导出</h1>';
-                html += '<table border="1" cellpadding="5"><tr><th>键</th><th>值</th></tr>';
+html += '<table border="1" cellpadding="5"><tr><th>键</th><th>值</th></tr>';
                 for (let key in allData) {
                     html += '<tr><td>' + key + '</td><td><pre>' + allData[key] + '</pre></td></tr>';
                 }
@@ -25138,46 +25088,23 @@ console.log('✅ 全局函数已定义: copyPreviousDayDataComplete, archiveOldD
     body{font-family:Arial;margin:20px;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background-color:#4CAF50;color:white;}</style>`;
 html += `</head><body>
 
-        <div id="score-dashboard" style="background: linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%); padding: 8px 16px; border-radius: 0; margin: 0; color: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            <div style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: nowrap;">
-                <!-- 五个部分分数 -->
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📝 AMI</span>
-                    <span id="dashboard-ami" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">⚡ BCM</span>
-                    <span id="dashboard-bcm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">📦 LOG</span>
-                    <span id="dashboard-logistics" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">💪 HSM</span>
-                    <span id="dashboard-hsm" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(255,255,255,0.08); border-radius: 5px;">
-                    <span class="tpi-inline-06">🎁 BONUS</span>
-                    <span id="dashboard-bonus" style="font-size: 15px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- TPI总分 -->
-                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(255,255,255,0.15); border-radius: 5px;">
-                    <span class="tpi-inline-06">TPI 总分</span>
-                    <span id="dashboard-total" style="font-size: 20px; font-weight: bold;">0.0</span>
-                </div>
-                <span class="tpi-inline-07">|</span>
-                <!-- 评级 -->
-                <div id="dashboard-rating" style="font-size: 10px; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 12px; font-weight: 600; white-space: nowrap;">待评级</div>
-
+        <div style="padding:8px 14px; margin:0 0 10px 0; border:1px solid #e5e7eb; border-radius:12px; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <span style="font-size:12px; color:#64748b;">分项</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">MA7: <span id="ts-export-ma7">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">AMI: <span id="ts-export-ami">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">FLI: <span id="ts-export-fli">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">SYS: <span id="ts-export-sys">0.0</span></span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#eef2ff; color:#1e293b;">BONUS: <span id="ts-export-bonus">0.0</span></span>
             </div>
-<h1>TPI数据导出</h1>`;
-                        html += '<table><tr><th>日期</th><th>数据内容</th></tr>';
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:12px; color:#64748b;">总分</span>
+              <span style="font-size:16px; font-weight:700; color:#0f172a;" id="ts-export-total">0.0</span>
+              <span style="font-size:12px; padding:3px 10px; border-radius:999px; background:#dbeafe; color:#1e40af; font-weight:700;" id="ts-export-rating">待评级</span>
+            </div>
+        </div>
+
+html += '<table><tr><th>日期</th><th>数据内容</th></tr>';
                         for (let key in allData) {
                             const date = key.replace('tpi_data_', '');
                             html += `<tr><td>${date}</td><td><pre>${allData[key]}</pre></td></tr>`;

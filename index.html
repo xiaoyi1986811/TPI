@@ -1502,6 +1502,7 @@ window.exportAsMarkdown = function () {
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <!-- 安全增强元标签 -->
 <meta content="nosniff" http-equiv="X-Content-Type-Options"/>
+<meta content="SAMEORIGIN" http-equiv="X-Frame-Options"/>
 <meta content="1; mode=block" http-equiv="X-XSS-Protection"/>
 <meta content="strict-origin-when-cross-origin" name="referrer"/>
 <!-- Netlify部署优化 -->
@@ -19285,35 +19286,47 @@ try {
             }
 
             /**
-             * 更新统计数据
+             * 更新统计数据（带防抖）
              */
+            let updateStatisticsTimer = null;
             function updateStatistics() {
-                console.log('[DataStats] 更新统计被调用');
-                
-                try {
-                    const history = getHistoricalData();
-                    console.log('[DataStats] 获取历史数据，共', history.length, '条记录');
-                    
-                    const stats = calculateStatistics(history);
-                    console.log('[DataStats] 统计数据:', stats);
-
-                    // 更新显示
-                    const daysCountElem = document.getElementById('stats-days-count');
-                    const maxTPIElem = document.getElementById('stats-max-tpi');
-                    const avgTPIElem = document.getElementById('stats-avg-tpi');
-
-                    if (daysCountElem) daysCountElem.textContent = `${history.length} 天`;
-                    if (maxTPIElem) maxTPIElem.textContent = `${stats.maxTPI.toFixed(1)} 分`;
-                    if (avgTPIElem) avgTPIElem.textContent = `${stats.avgTPI.toFixed(1)} 分`;
-
-                    // 更新状态
-                    state.dataStats = stats;
-                    
-                    console.log('[DataStats] 统计更新完成');
-
-                } catch (error) {
-                    console.error('[DataStats] 更新统计错误:', error);
+                // 防抖：避免频繁调用
+                if (updateStatisticsTimer) {
+                    clearTimeout(updateStatisticsTimer);
                 }
+                
+                updateStatisticsTimer = setTimeout(() => {
+                    try {
+                        console.log('[DataStats] 更新统计开始');
+                        
+                        const history = getHistoricalData();
+                        console.log('[DataStats] 获取历史数据，共', history.length, '条记录');
+                        
+                        if (history.length === 0) {
+                            console.log('[DataStats] 暂无历史数据，统计显示为0');
+                        }
+                        
+                        const stats = calculateStatistics(history);
+                        console.log('[DataStats] 统计结果:', stats);
+
+                        // 更新显示
+                        const daysCountElem = document.getElementById('stats-days-count');
+                        const maxTPIElem = document.getElementById('stats-max-tpi');
+                        const avgTPIElem = document.getElementById('stats-avg-tpi');
+
+                        if (daysCountElem) daysCountElem.textContent = `${history.length} 天`;
+                        if (maxTPIElem) maxTPIElem.textContent = `${stats.maxTPI.toFixed(1)} 分`;
+                        if (avgTPIElem) avgTPIElem.textContent = `${stats.avgTPI.toFixed(1)} 分`;
+
+                        // 更新状态
+                        state.dataStats = stats;
+                        
+                        console.log('[DataStats] 统计更新完成');
+
+                    } catch (error) {
+                        console.error('[DataStats] 更新统计错误:', error);
+                    }
+                }, 500); // 500ms防抖
             }
 
             // ==================== 事件监听器设置 ====================
@@ -29403,11 +29416,10 @@ function updateAuthPanels(){
 }
 
   function ensureAuth({needToken=true} = {}){
-    let { username, gistId, token } = getAuthFromUI();
+    const { username, gistId, token } = getAuthFromUI();
 
+    let finalUsername = username || 'tpi';
     if (!username) {
-      // 页面未提供用户名输入框时：使用默认命名空间，避免“登录无反应”
-      username = 'tpi';
       try{ tpiShowMsg('tpi-sync-msg','ℹ️ 未填写用户名，已自动使用默认命名空间：tpi', false); }catch(e){}
     }
 
@@ -29416,53 +29428,39 @@ function updateAuthPanels(){
     if (needToken && !tk) {
       try{ $('gistToken') && $('gistToken').focus(); }catch(e){}
       try{ window.showNotification ? window.showNotification('⚠️ 请先登录', 'warning') : null; }catch(e){}
+      console.warn('[ensureAuth] Token 不存在');
       tpiShowMsg('tpi-sync-msg','⚠️ 请先登录', true);
       return null;
     }
 
-    return { username, gistId, token: tk };
+    return { username: finalUsername, gistId, token: tk };
+    console.log('[ensureAuth] 认证成功:', { username: finalUsername, gistId, hasToken: !!tk, tokenLength: tk ? tk.length : 0 });
   }
 
   // --- Gist API ---
-  // --- Auth fetch helper (Bearer/token fallback) ---
-  async function fetchWithAuth(url, options, gistToken){
-    const baseHeaders = (options && options.headers && typeof options.headers==='object') ? options.headers : {};
-    const opt1 = Object.assign({}, options || {});
-    opt1.headers = Object.assign({}, baseHeaders, {
-      'Authorization': `Bearer ${gistToken}`,
-      'Accept': baseHeaders['Accept'] || 'application/vnd.github+json'
+  async function gistGet(gistToken){
+    const res = await fetch(GIST_API, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${gistToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github+json'
+      }
     });
-
-    let res = await fetch(url, opt1);
-    if (res && (res.status === 401 || res.status === 403)) {
-      // Fallback for classic PAT that expects "token" scheme in some environments
-      const opt2 = Object.assign({}, options || {});
-      opt2.headers = Object.assign({}, baseHeaders, {
-        'Authorization': `token ${gistToken}`,
-        'Accept': baseHeaders['Accept'] || 'application/vnd.github+json'
-      });
-      res = await fetch(url, opt2);
-    }
     return res;
   }
 
-  async function gistGet(gistToken){
-    return await fetchWithAuth(GIST_API, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }, gistToken);
-  }
-
   async function gistPatch(gistToken, payload){
-    return await fetchWithAuth(GIST_API, {
+    const res = await fetch(GIST_API, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${gistToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github+json'
       },
       body: JSON.stringify(payload)
-    }, gistToken);
+    });
+    return res;
   }
 
   
@@ -29628,7 +29626,58 @@ function parseGistFileContent(gistJson){
       ssSet(KEY_TOKEN_SS, token);
        try{ ssRemove(LEGACY_KEY_TOKEN_SS); }catch(e){}
 
-      tpiShowMsg('tpi-sync-msg','✅ 已同步到 Gist', false);
+      // ✅ 同步到 localStorage：确保本地也有完整数据副本
+      try{
+        const localKey = `tpi_data_${dateKey}`;
+        __tpi_ls_set(localKey, JSON.stringify(data || {}));
+        console.log('[tpiSaveData] 已同步到 localStorage:', localKey);
+        
+        // ✅ 更新历史记录：确保统计功能有数据
+        const historyKey = 'tpi_history';
+        let history = [];
+        try {
+          const historyStr = __tpi_ls_get(historyKey);
+          history = historyStr ? JSON.parse(historyStr) : [];
+          if (!Array.isArray(history)) history = [];
+        } catch (e) {
+          history = [];
+        }
+        
+        const tpiValue = (data && (data['tpi-total'] || data.tpiTotal)) || 0;
+        const historyEntry = {
+          date: dateKey,
+          timestamp: Date.now(),
+          tpi: parseFloat(tpiValue) || 0,
+          totalWords: (data && data.totalWords) || 0,
+          totalPages: (data && data.totalPages) || 0
+        };
+        
+        const existingIndex = history.findIndex(item => item.date === dateKey);
+        if (existingIndex >= 0) {
+          history[existingIndex] = historyEntry;
+        } else {
+          history.push(historyEntry);
+        }
+        
+        history.sort((a, b) => new Date(a.date) - new Date(b.date));
+        if (history.length > 365) {
+          history = history.slice(-365);
+        }
+        
+        __tpi_ls_set(historyKey, JSON.stringify(history));
+        console.log('[tpiSaveData] 已更新历史记录:', history.length, '条');
+        
+        // 触发统计更新
+        try {
+          if (window.TPI && typeof window.TPI.updateStatistics === 'function') {
+            setTimeout(() => window.TPI.updateStatistics(), 100);
+          }
+        } catch (e) {}
+      }catch(syncErr){
+        console.warn('[tpiSaveData] localStorage 同步失败:', syncErr);
+      }
+
+      tpiShowMsg('tpi-sync-msg','✅ 已同步到 Gist（并已更新本地副本）', false);
       toast(`✅ 已同步到 Gist（${dateKey}）`, 'success');
 
       // 更新提示行（可选）
@@ -29704,7 +29753,60 @@ function parseGistFileContent(gistJson){
       ssSet(KEY_TOKEN_SS, token);
        try{ ssRemove(LEGACY_KEY_TOKEN_SS); }catch(e){}
 
-      tpiShowMsg('tpi-sync-msg',`📥 已从 Gist 加载 ${dateKey} 数据`, false);
+      // ✅ 同步到 localStorage：确保本地也有完整数据副本
+      try{
+        const localKey = `tpi_data_${dateKey}`;
+        __tpi_ls_set(localKey, JSON.stringify(dayData || {}));
+        console.log('[tpiLoadData] 已同步到 localStorage:', localKey);
+        
+        // ✅ 更新历史记录
+        if (dayData && typeof dayData === 'object') {
+          const historyKey = 'tpi_history';
+          let history = [];
+          try {
+            const historyStr = __tpi_ls_get(historyKey);
+            history = historyStr ? JSON.parse(historyStr) : [];
+            if (!Array.isArray(history)) history = [];
+          } catch (e) {
+            history = [];
+          }
+          
+          const tpiValue = (dayData['tpi-total'] || dayData.tpiTotal) || 0;
+          const historyEntry = {
+            date: dateKey,
+            timestamp: Date.now(),
+            tpi: parseFloat(tpiValue) || 0,
+            totalWords: dayData.totalWords || 0,
+            totalPages: dayData.totalPages || 0
+          };
+          
+          const existingIndex = history.findIndex(item => item.date === dateKey);
+          if (existingIndex >= 0) {
+            history[existingIndex] = historyEntry;
+          } else {
+            history.push(historyEntry);
+          }
+          
+          history.sort((a, b) => new Date(a.date) - new Date(b.date));
+          if (history.length > 365) {
+            history = history.slice(-365);
+          }
+          
+          __tpi_ls_set(historyKey, JSON.stringify(history));
+          console.log('[tpiLoadData] 已更新历史记录:', history.length, '条');
+          
+          // 触发统计更新
+          try {
+            if (window.TPI && typeof window.TPI.updateStatistics === 'function') {
+              setTimeout(() => window.TPI.updateStatistics(), 100);
+            }
+          } catch (e) {}
+        }
+      }catch(syncErr){
+        console.warn('[tpiLoadData] localStorage 同步失败:', syncErr);
+      }
+
+      tpiShowMsg('tpi-sync-msg',`📥 已从 Gist 加载 ${dateKey} 数据（并已同步到本地）`, false);
       toast(`📥 已从 Gist 加载 ${dateKey} 数据`, 'info');
       try{ const s = $('sync-status'); if (s) s.textContent = `📥 已从 Gist 加载：${nsKey}`; }catch(e){}
       try{ const ld = $('tpi-loaded-date'); if (ld) ld.textContent = dateKey; }catch(e){}
@@ -29725,18 +29827,50 @@ function parseGistFileContent(gistJson){
   };
 
   window.tpiLogin = async function(){
+    console.log('[tpiLogin] 登录开始');
+    
+    // 直接从UI获取，不依赖ensureAuth
+    let token = ($('gistToken') && $('gistToken').value) ? String($('gistToken').value).trim() : '';
+    if (!token) token = ssGet(KEY_TOKEN_SS, '') || ssGet(LEGACY_KEY_TOKEN_SS, '') || '';
+    
+    if (!token) {
+      console.warn('[tpiLogin] Token 为空');
+      try{ $('gistToken') && $('gistToken').focus(); }catch(e){}
+      tpiShowMsg('tpi-sync-msg','⚠️ 请输入 GitHub Token', true);
+      try{ window.showNotification && window.showNotification('⚠️ 请输入 GitHub Token', 'warning'); }catch(e){}
+      return false;
+    }
+    
+    console.log('[tpiLogin] Token 已获取，长度:', token.length);
+    
     const auth = ensureAuth({needToken:true});
-    if (!auth) return false;
+    if (!auth) {
+      console.warn('[tpiLogin] ensureAuth 失败');
+      return false;
+    }
 
-    const { username, gistId, token } = auth;
+    const { username, gistId } = auth;
+    console.log('[tpiLogin] username:', username, 'gistId:', gistId);
 
     // 首先验证 Token 是否有效（调用 GitHub user API）
     try{
-      const userRes = await fetchWithAuth('https://api.github.com/user', { method: 'GET' }, token);
+      console.log('[tpiLogin] 开始验证 Token...');
+      const userRes = await fetch('https://api.github.com/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+      console.log('[tpiLogin] Token 验证响应状态:', userRes.status);
       if (userRes.status !== 200) {
+        const errorText = await userRes.text().catch(()=>'');
+        console.error('[tpiLogin] Token 验证失败:', userRes.status, errorText);
         tpiShowMsg('tpi-sync-msg','❌ Token 无效或已过期，请检查 Token 权限', true);
         return false;
       }
+      const userData = await userRes.json();
+      console.log('[tpiLogin] Token 验证成功，用户:', userData.login);
     }catch(err){
       console.error('[GitHub User Auth] failed:', err);
       tpiShowMsg('tpi-sync-msg',`❌ Token 验证失败：${err.message || err}`, true);
@@ -30312,6 +30446,65 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ [TPI优化] 函数增强包装器已加载');
+</script>
+
+<script>
+/* =========================================================
+   数据同步与统计初始化脚本
+   确保页面加载时正确初始化历史数据和统计功能
+========================================================= */
+(function() {
+  console.log('🚀 [数据同步初始化] 开始');
+  
+  // 等待页面完全加载
+  function init() {
+    console.log('📊 [数据同步初始化] DOM已加载，开始初始化统计');
+    
+    // 延迟执行，确保所有其他脚本已加载
+    setTimeout(() => {
+      try {
+        // 检查localStorage中的历史数据
+        const historyKey = 'tpi_history';
+        let history = [];
+        try {
+          const historyStr = window.__tpi_ls_get ? window.__tpi_ls_get(historyKey) : localStorage.getItem(historyKey);
+          history = historyStr ? JSON.parse(historyStr) : [];
+          if (!Array.isArray(history)) history = [];
+        } catch (e) {
+          console.warn('[数据同步初始化] 历史数据读取失败:', e);
+          history = [];
+        }
+        
+        console.log('[数据同步初始化] 当前历史记录数量:', history.length);
+        
+        // 如果有历史数据，触发统计更新
+        if (history.length > 0 && window.TPI && typeof window.TPI.updateStatistics === 'function') {
+          console.log('[数据同步初始化] 触发统计更新');
+          window.TPI.updateStatistics();
+        } else {
+          console.log('[数据同步初始化] 暂无历史数据或统计功能未就绪');
+        }
+        
+        // 如果没有历史数据，提示用户
+        if (history.length === 0) {
+          console.log('[数据同步初始化] 首次使用或历史数据为空');
+          // 不弹窗提示，只在控制台记录
+        }
+        
+      } catch (error) {
+        console.error('[数据同步初始化] 初始化失败:', error);
+      }
+    }, 2000); // 延迟2秒确保所有模块加载完成
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  console.log('✅ [数据同步初始化] 监听器已设置');
+})();
 </script>
 
 

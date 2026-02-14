@@ -14,10 +14,18 @@
       window.__tpi_json_parse_patched = true;
       const __origParse = JSON.parse;
       JSON.parse = function(text, reviver){
+        // 兼容：空字符串 / 仅空白 / BOM / 零宽字符
         if (typeof text === 'string') {
           const cleaned = text.replace(/\uFEFF/g,'').replace(/[\u200B-\u200D\u2060]/g,'').trim();
           if (cleaned === '') return null;
-          return __origParse(cleaned, reviver);
+          try{
+            return __origParse(cleaned, reviver);
+          }catch(err){
+            // 仅吞掉“末尾截断/空内容”类错误，避免打断登录与初始化
+            const msg = String(err && err.message ? err.message : err);
+            if (err && err.name === 'SyntaxError' && /Unexpected end of (JSON )?input/i.test(msg)) return null;
+            throw err;
+          }
         }
         return __origParse(text, reviver);
       };
@@ -68,6 +76,64 @@
       window.__tpi_console_raw = orig;
     }
   }catch(e){ /* ignore */ }
+})();
+
+/* 3) 统计/算分日志降噪：登录后 updateStatistics 可能被频繁触发，导致控制台越刷越多
+      - 将 window.TPI.updateStatistics 节流到 2 秒最多一次
+      - 执行期间临时静音 log/info/debug（warn/error 不动）
+*/
+(function(){
+  function throttle(fn, wait){
+    let last = 0, timer = null, lastArgs = null, lastThis = null;
+    return function(...args){
+      const now = Date.now();
+      lastArgs = args; lastThis = this;
+      const remain = wait - (now - last);
+      if (remain <= 0){
+        if (timer){ clearTimeout(timer); timer=null; }
+        last = now;
+        return fn.apply(lastThis, lastArgs);
+      }
+      if (!timer){
+        timer = setTimeout(()=>{
+          timer = null;
+          last = Date.now();
+          fn.apply(lastThis, lastArgs);
+        }, remain);
+      }
+    };
+  }
+
+  function silenceDuring(fn){
+    const noop = function(){};
+    const orig = { log: console.log, info: console.info, debug: console.debug };
+    console.log = noop; console.info = noop; console.debug = noop;
+    try{ return fn(); } finally { console.log = orig.log; console.info = orig.info; console.debug = orig.debug; }
+  }
+
+  function tryPatch(){
+    try{
+      if (!window.TPI || typeof window.TPI.updateStatistics !== 'function') return;
+      if (window.__tpi_update_stats_patched) return;
+      window.__tpi_update_stats_patched = true;
+
+      const origFn = window.TPI.updateStatistics.bind(window.TPI);
+      const wrapped = throttle(function(){
+        return silenceDuring(()=>origFn());
+      }, 2000);
+
+      window.TPI.updateStatistics = wrapped;
+    }catch(e){}
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tryPatch, {once:true});
+  }else{
+    tryPatch();
+  }
+  // 兜底：某些脚本会晚一点才挂载 TPI
+  setTimeout(tryPatch, 800);
+  setTimeout(tryPatch, 2000);
 })();
 
 
@@ -30320,17 +30386,17 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     console.log('🔄 [TPI优化] 开始增强现有函数...');
     
-    // 增强上传函数 (修复：使用正确的函数名 tpiSaveToday)
-    if (typeof window.tpiSaveToday !== 'undefined') {
-      var originalSave = window.tpiSaveToday;
-      window.tpiSaveToday = async function() {
-        console.log('📤 [TPI优化] tpiSaveToday 被调用');
+    // 增强上传函数
+    if (typeof window.saveTodaysData !== 'undefined') {
+      var originalSave = window.saveTodaysData;
+      window.saveTodaysData = async function() {
+        console.log('📤 [TPI优化] saveTodaysData 被调用');
         try {
           TPILoader.show('正在上传数据到云端...');
           var result = await originalSave.apply(this, arguments);
           TPILoader.hide();
           
-          if (result) {
+          if (result && result.success !== false) {
             TPIToast.success('✅ 数据已成功上传到云端');
           }
           
@@ -30342,20 +30408,20 @@ document.addEventListener('DOMContentLoaded', function() {
           throw error;
         }
       };
-      console.log('✅ [TPI优化] tpiSaveToday 已增强');
+      console.log('✅ [TPI优化] saveTodaysData 已增强');
     }
     
-    // 增强下载函数 (修复：使用正确的函数名 tpiLoadToday)
-    if (typeof window.tpiLoadToday !== 'undefined') {
-      var originalLoad = window.tpiLoadToday;
-      window.tpiLoadToday = async function() {
-        console.log('📥 [TPI优化] tpiLoadToday 被调用');
+    // 增强下载函数
+    if (typeof window.loadHistoryFromCloud !== 'undefined') {
+      var originalLoad = window.loadHistoryFromCloud;
+      window.loadHistoryFromCloud = async function() {
+        console.log('📥 [TPI优化] loadHistoryFromCloud 被调用');
         try {
           TPILoader.show('正在从云端下载数据...');
           var result = await originalLoad.apply(this, arguments);
           TPILoader.hide();
           
-          if (result) {
+          if (result && result.success !== false) {
             TPIToast.success('✅ 数据已成功从云端加载');
           }
           
@@ -30367,32 +30433,7 @@ document.addEventListener('DOMContentLoaded', function() {
           throw error;
         }
       };
-      console.log('✅ [TPI优化] tpiLoadToday 已增强');
-    }
-    
-    // 增强登录函数 (新增)
-    if (typeof window.tpiLogin !== 'undefined') {
-      var originalLogin = window.tpiLogin;
-      window.tpiLogin = async function() {
-        console.log('🔐 [TPI优化] tpiLogin 被调用');
-        try {
-          TPILoader.show('正在验证登录信息...');
-          var result = await originalLogin.apply(this, arguments);
-          TPILoader.hide();
-          
-          if (result) {
-            TPIToast.success('✅ 登录成功！');
-          }
-          
-          return result;
-        } catch (error) {
-          TPILoader.hide();
-          console.error('❌ [TPI优化] 登录失败:', error);
-          TPIToast.error('❌ 登录失败：' + (error.message || '未知错误'));
-          throw error;
-        }
-      };
-      console.log('✅ [TPI优化] tpiLogin 已增强');
+      console.log('✅ [TPI优化] loadHistoryFromCloud 已增强');
     }
     
     // 增强签到函数
